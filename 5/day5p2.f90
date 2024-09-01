@@ -68,7 +68,7 @@ contains
 
         do i = 1, size(this%tables)
             if (this%tables(i)%src <= value                                  &
-                .and. value <= this%tables(i)%src + this%tables(i)%rlen - 1) &
+                .and.                 value <= this%tables(i)%src + this%tables(i)%rlen - 1) &
                 
                 res = value + this%tables(i)%dest - this%tables(i)%src
         end do
@@ -87,6 +87,7 @@ contains
         integer :: i
 
         allocate(res%tables(size(lines)))
+        print *, 'Are we making it here at least? '
 
         res%tables = [(read_line_to_lookup_table(lines(i)), i = 1, size(lines))]
 
@@ -102,6 +103,26 @@ contains
             if (arr(i) < res) res = arr(i)
         end do
     end function minarray
+
+    subroutine min_val_from_seed(units, files, seeds)
+        character(len=200), dimension(:), intent(in) :: files
+        integer(int64), allocatable, dimension(:), intent(inout) :: seeds
+        integer, dimension(:), intent(in) :: units
+        character(len=200), allocatable, dimension(:) :: lines
+        integer :: i, j
+        type(ltable_manager) :: map
+
+        do i = 2, size(files)
+            lines = read_file_to_lines(units(i), files(i))
+            map = read_lines_to_ltable_manager(lines)
+            print *, 'Allocated ltable manager for ', files(i)
+            deallocate(lines)
+
+            seeds = [( map%map_value(seeds(j)), j = 1, size(seeds) )]
+
+            call map%release_ltable_manager()
+        end do
+    end subroutine min_val_from_seed
 
 end module day5funcs
 
@@ -131,38 +152,32 @@ program day5prog
 
     integer, dimension(8) :: units
     character(len=200), dimension(8) :: files
-    character(len=200), allocatable, dimension(:) :: seed_txt, lines
+    character(len=200), allocatable, dimension(:) :: seed_txt, lines, dyn_mem
     integer(int64), allocatable, dimension(:) :: seeds
-    type(ltable_manager) :: map
+    integer(int64) :: seed_range, seed_start, min_val, k
 
-    integer :: i, j
+    integer :: i
+    integer(int64) :: j
 
     units = [unit_a, unit_b, unit_c, unit_d, unit_e, unit_f, unit_g, unit_h]
     files = [file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h]
 
-    seed_txt = read_file_to_lines(unit_a, 'input/a-seeds.txt')
-    
-    allocate(seeds(size(seed_txt)))
-    do i = 1, size(seeds)
-        read(seed_txt(i), '(I12)') seeds(i)
+    lines = read_file_to_lines(unit_a, 'input/a-seeds.txt')
+
+    min_val = 0
+    do i = 1, size(lines) ! For i in size lines
+        seed_txt = split(lines(j), ' ')
+        read(seed_txt(1), '(I10)') seed_range
+        read(seed_txt(2), '(I10)') seed_start
+        deallocate(seed_txt)
+
+        do j = seed_start, seed_start + seed_range
+           if 
+
+        end do
     end do
 
-    deallocate(seed_txt)
+    print *, 'The solution to day 5, part 1 is: ', min_val
 
-    do i = 2, size(files)
-        
-        lines = read_file_to_lines(units(i), files(i))
-        map = read_lines_to_ltable_manager(lines)
-        print *, 'Allocated ltable manager for ', files(i)
-        deallocate(lines)
-
-        seeds = [( map%map_value(seeds(j)), j = 1, size(seeds) )]
-
-        call map%release_ltable_manager()
-
-    end do
-
-    print *, 'The solution to day 5, part 1 is: ', minarray(seeds)
-    deallocate(seeds)
-
+    deallocate(lines)
 end program day5prog
